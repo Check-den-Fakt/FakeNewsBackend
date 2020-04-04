@@ -43,6 +43,8 @@ namespace CheckDenFaktFakeNewsFunction
                 document.Sources.Add(link);
             }
 
+            document.DateTime = item.DateTime;
+
             await client.UpsertDocumentAsync(collectionUri, document).ConfigureAwait(false);
         }
 
