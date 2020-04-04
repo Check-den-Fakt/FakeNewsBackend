@@ -137,7 +137,7 @@ namespace CheckDenFaktFakeNewsFunction
         }
 
         [FunctionName("Remove")]
-        public static async Task<IActionResult> Remove([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] Document req,
+        public static async Task<IActionResult> Remove([HttpTrigger(AuthorizationLevel.User, "post", Route = null)] Document req,
             [CosmosDB(databaseName: "fakenewsdb", collectionName: "fakenews", ConnectionStringSetting = "CosmosDbConnection")] DocumentClient client,
             ILogger log)
         {
@@ -179,7 +179,7 @@ namespace CheckDenFaktFakeNewsFunction
             }
             else
             {
-                sources = new List<string>();
+                sources = req.Sources;
             }
 
             if (req.Content == null)
