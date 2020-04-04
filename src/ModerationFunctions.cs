@@ -86,7 +86,8 @@ namespace CheckDenFaktFakeNewsFunction
                 ApprovedByModerator = doc.ApprovedByModerator,
                 Votes = doc.Votes - 1,
                 Content = doc.Content,
-                Sources = doc.Sources
+                Sources = doc.Sources,
+                AmountOfVotes = doc.AmountOfVotes + 1,
             };
 
             await client.UpsertDocumentAsync(collectionUri, document);
@@ -127,6 +128,7 @@ namespace CheckDenFaktFakeNewsFunction
                 DateTime = req.DateTime,
                 ApprovedByModerator = doc.ApprovedByModerator,
                 Votes = doc.Votes + 1,
+                AmountOfVotes = doc.AmountOfVotes + 1,
                 Content = doc.Content,
                 Sources = doc.Sources
             };
@@ -194,7 +196,8 @@ namespace CheckDenFaktFakeNewsFunction
                 ApprovedByModerator = false,
                 Votes = 0,
                 Content = req.Content,
-                Sources = sources
+                Sources = sources,
+                AmountOfVotes = 0
             };
 
             await client.UpsertDocumentAsync(collectionUri, document);

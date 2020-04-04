@@ -18,6 +18,8 @@ namespace CheckDenFaktFakeNewsFunction
 
         public int Votes { get; set; }
 
+        public int AmountOfVotes { get; set; }
+
         public List<string> Sources { get; set; }
     }
 }
