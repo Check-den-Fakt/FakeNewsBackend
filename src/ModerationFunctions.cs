@@ -18,8 +18,8 @@ namespace CheckDenFaktFakeNewsFunction
     {
         [FunctionName("Approve")]
         public static async Task<IActionResult> Approve(
-            [HttpTrigger(AuthorizationLevel.User, "post", Route = null)] Document req, 
-            [CosmosDB(databaseName: "fakenewsdb", collectionName: "fakenews", ConnectionStringSetting = "CosmosDbConnection")] DocumentClient client, 
+            [HttpTrigger(AuthorizationLevel.User, "post", Route = null)] Document req,
+            [CosmosDB(databaseName: "fakenewsdb", collectionName: "fakenews", ConnectionStringSetting = "CosmosDbConnection")] DocumentClient client,
             ILogger log)
         {
             log.LogInformation("C# approve trigger function processed a request.");
@@ -35,7 +35,7 @@ namespace CheckDenFaktFakeNewsFunction
                .AsDocumentQuery();
 
             var result = await query.ExecuteNextAsync<Document>();
-            var doc = result.First();     
+            var doc = result.First();
 
             Document document = new Document()
             {
@@ -52,8 +52,8 @@ namespace CheckDenFaktFakeNewsFunction
             return new OkResult();
         }
 
-        [FunctionName("Vote")]
-        public static async Task<IActionResult> Vote(
+        [FunctionName("VoteDown")]
+        public static async Task<IActionResult> VoteDown(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] Document req,
             [CosmosDB(databaseName: "fakenewsdb", collectionName: "fakenews", ConnectionStringSetting = "CosmosDbConnection")] DocumentClient client,
             ILogger log)
@@ -84,7 +84,49 @@ namespace CheckDenFaktFakeNewsFunction
                 Id = req.Id,
                 DateTime = req.DateTime,
                 ApprovedByModerator = doc.ApprovedByModerator,
-                Votes = doc.Votes+1,
+                Votes = doc.Votes - 1,
+                Content = doc.Content,
+                Sources = doc.Sources
+            };
+
+            await client.UpsertDocumentAsync(collectionUri, document);
+
+            return new OkResult();
+        }
+
+        [FunctionName("VoteUp")]
+        public static async Task<IActionResult> VoteUp(
+    [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] Document req,
+    [CosmosDB(databaseName: "fakenewsdb", collectionName: "fakenews", ConnectionStringSetting = "CosmosDbConnection")] DocumentClient client,
+    ILogger log)
+        {
+            log.LogInformation("C# approve trigger function processed a request.");
+
+            Uri collectionUri = UriFactory.CreateDocumentCollectionUri("fakenewsdb", "fakenews");
+
+            FeedOptions options = new FeedOptions()
+            {
+                EnableCrossPartitionQuery = true
+            };
+            IDocumentQuery<Document> query = client.CreateDocumentQuery<Document>(collectionUri, options)
+               .Where(p => p.Id.Equals(req.Id))
+               .AsDocumentQuery();
+
+            var result = await query.ExecuteNextAsync<Document>();
+
+            if (result.Count == 0)
+            {
+                return new NotFoundResult();
+            }
+
+            var doc = result.First();
+
+            Document document = new Document()
+            {
+                Id = req.Id,
+                DateTime = req.DateTime,
+                ApprovedByModerator = doc.ApprovedByModerator,
+                Votes = doc.Votes + 1,
                 Content = doc.Content,
                 Sources = doc.Sources
             };
@@ -163,15 +205,15 @@ namespace CheckDenFaktFakeNewsFunction
             Uri collectionUri = UriFactory.CreateDocumentCollectionUri("fakenewsdb", "fakenews");
 
             string dateTime = DateTime.Today.AddDays(-14).ToString("o");
-            
+
             FeedOptions options = new FeedOptions()
             {
                 EnableCrossPartitionQuery = true
             };
 
-            var query = client.CreateDocumentQuery<Document>(collectionUri, feedOptions : options, sqlExpression:
+            var query = client.CreateDocumentQuery<Document>(collectionUri, feedOptions: options, sqlExpression:
                 $"SELECT * FROM root where (root[\"DateTime\"] >= \"{dateTime}\")order by root._ts")
-                .AsDocumentQuery(); 
+                .AsDocumentQuery();
 
             var result = await query.ExecuteNextAsync();
 
