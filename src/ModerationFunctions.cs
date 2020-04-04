@@ -182,6 +182,11 @@ namespace CheckDenFaktFakeNewsFunction
                 sources = new List<string>();
             }
 
+            if (req.Content == null)
+            {
+                return new BadRequestResult();
+            }
+
             Document document = new Document()
             {
                 Id = Guid.NewGuid().ToString(),
@@ -250,6 +255,10 @@ namespace CheckDenFaktFakeNewsFunction
             if (result.Count == 0)
             {
                 return new EmptyResult();
+            }
+            else if (result.Count <= n)
+            {
+                return new NoContentResult();
             }
 
             return new OkObjectResult(result.Skip(n).First());
