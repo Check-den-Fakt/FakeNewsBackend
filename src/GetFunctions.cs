@@ -74,5 +74,40 @@ namespace CheckDenFaktFakeNewsFunction
 
             return new OkObjectResult(result.Skip(n).First());
         }
+
+        [FunctionName("GetLast100")]
+        public static async Task<IActionResult> GetLast100([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req,
+                    [CosmosDB(databaseName: "fakenewsdb", collectionName: "fakenews", ConnectionStringSetting = "CosmosDbConnection")] DocumentClient client,
+                    ILogger log)
+        {
+            Uri collectionUri = UriFactory.CreateDocumentCollectionUri("fakenewsdb", "fakenews");
+
+            string dateTime = DateTime.Today.AddDays(-14).ToString("o");
+
+            FeedOptions options = new FeedOptions()
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            var query = client.CreateDocumentQuery<Document>(collectionUri, feedOptions: options, sqlExpression:
+                $"SELECT Top 100 * FROM root where (root[\"DateTime\"] >= \"{dateTime}\") order by root._ts")
+                .AsDocumentQuery();
+
+            var result = await query.ExecuteNextAsync();
+
+            if (result.Count != 0)
+            {
+                if (result.Count == 0) {
+                    return new EmptyResult();
+                }
+
+                if (result.Count >0 && result.Count<100){
+                    return new OkObjectResult(result.Take(result.Count));
+                }
+            }
+
+            return new OkObjectResult(result.Take(100));
+        }
+
     }
 }
