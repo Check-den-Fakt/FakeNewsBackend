@@ -21,5 +21,7 @@ namespace CheckDenFaktFakeNewsFunction
         public int AmountOfVotes { get; set; }
 
         public List<string> Sources { get; set; }
+
+        public string LanguageCode { get; set; }
     }
 }

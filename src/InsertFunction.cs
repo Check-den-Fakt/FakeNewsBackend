@@ -43,6 +43,17 @@ namespace CheckDenFaktFakeNewsFunction
                 return new BadRequestResult();
             }
 
+            string languageCode;
+            if (req.LanguageCode == null)
+            {
+                languageCode = "de";
+            }
+            else
+            {
+                languageCode = req.LanguageCode;
+            }
+
+
             Document document = new Document()
             {
                 Id = Guid.NewGuid().ToString(),
@@ -51,7 +62,8 @@ namespace CheckDenFaktFakeNewsFunction
                 Votes = 0,
                 Content = req.Content,
                 Sources = sources,
-                AmountOfVotes = 0
+                AmountOfVotes = 0,
+                LanguageCode = languageCode
             };
 
             await client.UpsertDocumentAsync(collectionUri, document);
